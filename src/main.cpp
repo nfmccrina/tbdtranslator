@@ -1,3 +1,4 @@
+#include "languid_config.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
@@ -11,6 +12,8 @@
 #include <sstream>
 #include <chrono>
 #include <vorbis/vorbisenc.h>
+
+using namespace languid;
 
 // 00007000: 4200 4b00 4500 4b00 4d00 4b00 5300 5100  B.K.E.K.M.K.S.Q.
 
@@ -646,32 +649,37 @@ void send_audio(std::shared_ptr<std::vector<uint8_t>> ogg_buffer, bool &running)
     }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    auto speech_key = std::string(std::getenv("SPEECH_KEY"));       // 0d3c308c3e4146bf9d03d04a46984922
-    auto speech_region = std::string(std::getenv("SPEECH_REGION")); // centralus
+    try
+    {
+        LanguidConfig config = LanguidConfig::init(argc, argv);
+        auto speech_key = config.get_speech_key();
+        auto speech_region = config.get_speech_region();
 
-    std::shared_ptr<std::vector<uint8_t>> pcm_buffer = std::make_shared<std::vector<uint8_t>>();
-    std::shared_ptr<std::vector<uint8_t>> ogg_buffer = std::make_shared<std::vector<uint8_t>>();
-    bool running = true;
+        std::shared_ptr<std::vector<uint8_t>> pcm_buffer = std::make_shared<std::vector<uint8_t>>();
+        std::shared_ptr<std::vector<uint8_t>> ogg_buffer = std::make_shared<std::vector<uint8_t>>();
+        bool running = true;
 
-    auto recognizer = init_translation_recognizer(speech_key, speech_region, pcm_buffer);
+        auto recognizer = init_translation_recognizer(speech_key, speech_region, pcm_buffer);
 
-    recognizer->StartContinuousRecognitionAsync().get();
+        recognizer->StartContinuousRecognitionAsync().get();
 
-    std::thread audio_encode_thread(encode_audio, pcm_buffer, ogg_buffer, std::ref(running));
-    std::thread audio_broadcast_thread(send_audio, ogg_buffer, std::ref(running));
+        std::thread audio_encode_thread(encode_audio, pcm_buffer, ogg_buffer, std::ref(running));
+        std::thread audio_broadcast_thread(send_audio, ogg_buffer, std::ref(running));
 
-    // std::cout
-    //     << "Press enter to stop recording..." << std::endl;
-    std::getchar();
+        std::getchar();
 
-    running = false;
+        running = false;
 
-    recognizer->StopContinuousRecognitionAsync().get();
-    audio_encode_thread.join();
-    audio_broadcast_thread.join();
+        recognizer->StopContinuousRecognitionAsync().get();
+        audio_encode_thread.join();
+        audio_broadcast_thread.join();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "error handled: " << e.what() << '\n';
+    }
 
-    // std::cout << "stopped." << std::endl;
     return 0;
 }

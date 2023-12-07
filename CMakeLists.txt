@@ -11,7 +11,9 @@ set(CMAKE_CXX_FLAGS_DEBUG  "-g")
 
 project(TBD_TRANSLATOR VERSION 0.0.1)
 
-add_executable(tbdtranslator src/main.cpp)
+add_executable(tbdtranslator
+    src/main.cpp
+    src/languid_config.cpp)
 
 
 
