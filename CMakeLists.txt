@@ -13,7 +13,16 @@ project(TBD_TRANSLATOR VERSION 0.0.1)
 
 add_executable(tbdtranslator
     src/main.cpp
-    src/languid_config.cpp)
+    src/languid_config.cpp
+    src/buffer.cpp
+    src/speech_recognizer.cpp
+    src/wav_header_remover.cpp
+    src/languid_config.cpp
+    src/languid_controller.cpp
+    src/audio_stream_normalizer.cpp
+    src/vorbis_encoder.cpp
+    src/file_writer.cpp
+    src/icecast_publisher.cpp)
 
 
 
